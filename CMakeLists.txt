@@ -2,6 +2,7 @@ cmake_minimum_required(VERSION 3.9)
 set(LIBNAME luchok_libretro)
 project(${LIBNAME} LANGUAGES C CXX VERSION 1.0.1 DESCRIPTION "Luchok fantasy console, Libretro core")
 set(CMAKE_SHARED_LIBRARY_PREFIX )
+set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 set(LUA_DIR vendor/lua)
 set(LUA_SRC
