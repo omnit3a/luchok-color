@@ -31,7 +31,7 @@ To build Luchok, you must have [cmake](https://cmake.org) and a build system of 
 # Running
 *retroarch executable*  -L  *luchok library afer building*  **game file**
 
-For example, if on a GNU/Linux system, and you are locared in the repository root, you can run `retroarch -L bin/luchok_libretro.so bin/invaders.luchok`.
+For example, if on a GNU/Linux system, and you are locared in the repository root, you can run `retroarch -L build/luchok_libretro.so bin/invaders.luchok`.
 
 In Retroarch, press ScrollLock to switch between retroarch key bindings and Luchok keypad.
 
