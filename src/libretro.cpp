@@ -7,6 +7,7 @@
 #include <stdarg.h>
 #include <string.h>
 #include <math.h>
+#include "luchok.h"
 
 #include <stdio.h>
 #if defined(_WIN32) && !defined(_XBOX)
@@ -20,11 +21,18 @@ extern "C" {
 	#include "lualib.h"
 }
 
+color_t colors[4] = {
+  {0xFF000000, 0},
+  {0xFFFF0030, 1},
+  {0xFF00FF00, 2},
+  {0xFFFFFFFF, 3},
+};
+
 constexpr uint32_t ON_COLOR = 0xFFFFFFFF;
 constexpr uint32_t OFF_COLOR = 0x00000000;
 
-constexpr auto screenWidth = 64;
-constexpr auto screenHeight = 32;
+constexpr auto screenWidth = SCREEN_WIDTH;
+constexpr auto screenHeight = SCREEN_HEIGHT;
 constexpr auto screenTotalPixels = screenWidth * screenHeight;
 constexpr auto audioSampleRate = 44100;
 
@@ -43,9 +51,9 @@ static const char* DELAY_TIMER_VARIABLE = "delay_timer";
 static const char* SOUND_TIMER_VARIABLE = "sound_timer";
 
 const int keys[16] = {RETROK_x, RETROK_1, RETROK_2, RETROK_3,
-	RETROK_q, RETROK_w ,RETROK_e, RETROK_a,
-	RETROK_s, RETROK_d, RETROK_z, RETROK_c,
-	RETROK_4, RETROK_r, RETROK_f, RETROK_v
+        RETROK_q, RETROK_w ,RETROK_e, RETROK_a,
+        RETROK_s, RETROK_d, RETROK_z, RETROK_c,
+        RETROK_4, RETROK_r, RETROK_f, RETROK_v,
 };
 
 const int font[16][5] = {
@@ -127,7 +135,7 @@ void luaCallVBlank() {
 
 void cls() {
 	for(int i = 0; i < screenTotalPixels; i++) {
-		frame_buf[i] = OFF_COLOR;
+		frame_buf[i] = colors[0].color;
 	}
 }
 
@@ -141,21 +149,33 @@ int luaCls(lua_State* L) {
 	return 0;
 }
 
-bool getPixel(int x, int y){
-    return frame_buf[y * screenWidth + x] == ON_COLOR;
+uint32_t get_color(int id){
+  for (int i = 0 ; i < 4 ; i++){
+    if (colors[i].id == id){
+      return colors[i].color;
+    }
+  }
+  return colors[0].color;
 }
 
-void setPixel(int x, int y, bool value){
-    frame_buf[y * screenWidth + x] = value ? ON_COLOR : OFF_COLOR;
+uint32_t getPixel(int x, int y){
+    return frame_buf[y * screenWidth + x];
+}
+
+void setPixel(int x, int y, int value){
+
+  frame_buf[y * screenWidth + x] = get_color(value);
 }
 
 bool drawByte(int value, int x,  int y) {
 	 bool result = false;
-    for(int i = 0; i < 8; i++){
-        bool thisBit = (value >> (7 - i)) & 1;
-        auto thisColor = thisBit ? ON_COLOR : OFF_COLOR;
+    for(int i = 0; i < 8; ){
+	int bitValues = 0;
+        bitValues = (value & ( 1 << i )) >> i;
+	bitValues += ((value & ( 1 << i+1 )) >> i+1) * 2;
+        auto thisColor = get_color(bitValues);
 
-        int new_x = (x + i) % screenWidth;
+        int new_x = (x + i/2) % screenWidth;
         if(new_x < 0){
             new_x = screenWidth + new_x;
         }
@@ -165,21 +185,11 @@ bool drawByte(int value, int x,  int y) {
             new_y = screenHeight + new_y;
         }
 
-        //std::cout<<x<<" "<<y<<" "<<new_x<<" "<<new_y<<" "<<std::endl;
+        setPixel(new_x, new_y, bitValues);
 
-        bool currentBit = getPixel(new_x, new_y);
-        if(!result && currentBit && thisBit)
-        {
-            result = true;
-        }
-
-        bool newBit = currentBit ^ thisBit;
-        setPixel(new_x, new_y, newBit);
-        //std::cout << x<< " " << y << " " 
-        //    << currentBit << " " << thisBit << " " << 
-        //    newBit << " " << result << std::endl;
+	i+=2;
     }
-    return result;
+    return false;
 }
 
 int luaDraw(lua_State* L) {
@@ -205,9 +215,9 @@ int luaDraw(lua_State* L) {
    // std::cout<<"drawing at "<<x<<" "<<y<<std::endl;
 
     luaL_argcheck(lua, lua_istable(lua, 1), 1, "cls() argument must be a table");
-    luaL_argcheck(lua, (x >= 0 && x < screenWidth), 2, "cls() x must be between 0 and 63");
+    luaL_argcheck(lua, (x >= 0 && x < screenWidth), 2, "cls() x must be between 0 and 64");
     luaL_argcheck(lua, (y >= 0 && y < screenHeight), 3, "cls() y must be between 0 and 31");
-
+    
     for(int i = start; i < start + len; i++){
         lua_geti(lua, 1, i);
         if(lua_isnil(lua, -1)){
@@ -219,6 +229,7 @@ int luaDraw(lua_State* L) {
         {
             luaL_error(lua, "can't draw %d, must be between 0 and 255", b);
         }
+	
         if(!result && drawByte(b, x, y+i-1)){
             result = true;
         }
@@ -400,7 +411,7 @@ void retro_set_controller_port_device(unsigned port, unsigned device)
 void retro_get_system_info(struct retro_system_info *info)
 {
    memset(info, 0, sizeof(*info));
-   info->library_name     = "Luchok fantasy console";
+   info->library_name     = "Luchok Color fantasy console";
    info->library_version  = "1.0";
    info->need_fullpath    = false;
    info->valid_extensions = "luchok";
