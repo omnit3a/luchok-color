@@ -9,7 +9,7 @@ Luchok is Fantasy Console inspired by [Chip-8](https://en.wikipedia.org/wiki/CHI
 
 # Features
 
-* Screen: 64x32
+* Screen: 64x32, 4 Colors (Black, Cyan, Magenta, Yellow)
 
 * Scripting: Lua
 
@@ -75,9 +75,22 @@ and mapped to:
 > 
 > Z X C V
 
+# Sprites
+
+Sprites have a size of 4 by 8.
+The color of any given pixel is based on two pixel groupings.
+> 0b00: Black
+>
+> 0b01: Cyan
+>
+> 0b10: Magenta
+>
+> 0b11: Yellow
+
 # License
 Licensed under [GNU General Public License 3](https://www.gnu.org/licenses/gpl-3.0.html).
 
 
 # Author
-Roman "shinkarom" Shynkarenko (https://shinkarom.github.io).
+Original: Roman "shinkarom" Shynkarenko (https://shinkarom.github.io).
+Color Version: omnit3a (https://github.com/omnit3a).
