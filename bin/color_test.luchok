@@ -2,5 +2,10 @@ test = {228}
 
 function vblank()
   cls()
-  draw(test, 1, 1)
+  for j=0,31,8 do
+    for i=0,15 do
+      draw(test, i*4, j)
+      draw(get_sprite(i), i*4, j+2)
+    end
+  end
 end
